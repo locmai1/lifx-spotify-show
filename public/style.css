@@ -31,7 +31,8 @@ a {
   border: 0.2em solid white;
   width: 20vh;
   border-radius: 10vh;    
-  box-shadow: 0px 4px 4px rgba(0,0,0,0.2);        
+  box-shadow: 0px 4px 4px rgba(0,0,0,0.2);
+  margin-bottom: 5vh;     
 }
 
 .party {
