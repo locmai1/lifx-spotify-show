@@ -17,7 +17,7 @@ module.exports.getCurrentTrack = function(user, callback) {
   .then((response) => {
     var curTrack = response.data;
 
-    if (track !== curTrack.item.id) {
+    if (curTrack && (track !== curTrack.item.id)) {
       console.log(`New track: ${curTrack.item.name} by ${curTrack.item.artists[0].name}`);
       track = curTrack.item.id;
 

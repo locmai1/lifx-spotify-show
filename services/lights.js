@@ -4,7 +4,7 @@ const NanoTimer = require('nanotimer');
 const spotifyService = require('./spotify');
 
 const POLL_TIME = 2000;
-const MAX_BRIGHTNESS = 30;
+const MAX_BRIGHTNESS = 50;
 const MIN_BRIGHTNESS = 0;
 const BEAT_THRESHHOLD = 5;
 var loudest = -99;
