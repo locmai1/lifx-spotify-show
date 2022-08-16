@@ -1,0 +1,14 @@
+html
+  head
+    title= 'LIFX'
+    link(rel='stylesheet', href='/style.css')
+  body
+    div(id='container')
+      h1= 'We couldn\'t find your LIFX device(s)'
+
+      div(class='media')
+        img(src=user.images[0].url)
+
+      br
+      br
+      a(href='/user')='Retry'

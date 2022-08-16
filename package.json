@@ -1,0 +1,24 @@
+{
+  "author": "",
+  "name": "spotify-lifx-sync",
+  "version": "1.0.0",
+  "description": "",
+  "type": "commonjs",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "lodash": "^4.17.21",
+    "nanotimer": "^0.3.15",
+    "node-lifx": "^0.8.0",
+    "pug": "^3.0.2",
+    "querystring": "^0.2.1"
+  }
+}
