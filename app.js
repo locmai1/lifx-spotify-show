@@ -73,16 +73,12 @@ app.get('/callback', (req, res) => {
         res.redirect('/user');
       })
       .catch((error) => {
-        res.redirect(`/error?${new URLSearchParams({
-          error: error
-        })}`);
+        console.log(error);
       })
     }
   })
   .catch((error) => {
-    res.redirect(`/error?${new URLSearchParams({
-      error: 'invalid_token'
-    })}`);
+    console.log(error || 'invalid token');
   })
 });
 
@@ -110,9 +106,7 @@ app.get('/refresh_token', (req, res) => {
     });
   })
   .catch((error) => {
-    res.redirect(`/error?${new URLSearchParams({
-      error: error
-    })}`);
+    console.log(error);
   })
 })
 
@@ -133,20 +127,6 @@ app.get('/user', (req, res) => {
   });
 });
 
-// Log current user out of app
-app.get('/logout', (req, res) => {
-  if (!user || !user.access_token) {
-    res.redirect('/');
-    return;
-  }
-
-  setLightsOff();
-  user.access_token = null;
-
-  res.redirect('//accounts.spotify.com/en/logout');
-  console.log('User logged out!');
-})
-
 // Start sync if logged in & lights available
 app.get('/go', (req, res) => {
   if(!user || !user.access_token) {
@@ -163,20 +143,52 @@ app.get('/go', (req, res) => {
     user: user
   });
 
-  setLightsOn();
   spotifyService.getCurrentTrack(user);
 });
 
-// Catch errors if any
-app.get('/error', (req, res) => {
-  if(!req.query.msg) {
+// Control the status of the LIFX light(s)
+app.get('/go/:status', (req, res) => {
+  var status = req.params.status;
+
+  if(!user || !user.access_token) {
     res.redirect('/');
     return;
   }
 
-  res.render('error', {
-    error: req.query.msg
-  });
+  if (!getLights()) {
+    res.redirect('/user');
+    return;
+  }
+
+  if (status == 'off') {
+    setLightsOff();
+    res.redirect('/go');
+
+    return;
+  } 
+
+  if (status == 'on') {
+    setLightsOn();
+    res.redirect('/go');
+
+    return;
+  }
+
+  res.redirect('/');
+});
+
+// Log current user out of app
+app.get('/logout', (req, res) => {
+  if (!user || !user.access_token) {
+    res.redirect('/');
+    return;
+  }
+
+  setLightsOff();
+  user.access_token = null;
+
+  res.redirect('//accounts.spotify.com/en/logout');
+  console.log('User logged out!');
 });
 
 app.listen(process.env.PORT, () => {
