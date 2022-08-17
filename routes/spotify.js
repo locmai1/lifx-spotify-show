@@ -18,7 +18,8 @@ module.exports.getCurrentTrack = (user, callback) => {
     var curTrack = response.data;
 
     if (curTrack && track !== curTrack.item.id) {
-      console.log(`New track: ${curTrack.item.name} by ${curTrack.item.artists[0].name}...`);
+      console.log(`New track: ${curTrack.item.name} by ${getArtistsNames(curTrack).join(", ")}`);
+
       track = curTrack.item.id;
       
       this.getAudioAnalysis(curTrack, user);
@@ -27,7 +28,7 @@ module.exports.getCurrentTrack = (user, callback) => {
     }
   })
   .catch((error) => {
-    console.log(error || "Couldn't find spotify...");
+    console.log(error || "Couldn't find spotify");
   })
 }
 
@@ -51,4 +52,15 @@ module.exports.getAudioAnalysis = (track, user) => {
   .catch((error) => {
     console.log(error);
   })
+}
+
+// Get all artists names from given track
+const getArtistsNames = (track) => {
+  var names = [];
+
+  track.item.artists.forEach((artist) => {
+    names.push(artist.name);
+  })
+
+  return names;
 }

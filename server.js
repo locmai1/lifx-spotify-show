@@ -78,7 +78,7 @@ app.get('/callback', (req, res) => {
     }
   })
   .catch((error) => {
-    console.log(error || 'invalid token...');
+    console.log(error || 'invalid token');
   })
 });
 
@@ -110,7 +110,13 @@ app.get('/refresh_token', (req, res) => {
   })
 })
 
+// Deafault page, prompts login
 app.get('/', (req, res) => {
+  if (user && user.access_token) {
+    res.redirect('/user');
+    return;
+  }
+
   res.render('login');
 })
 
@@ -166,7 +172,7 @@ app.get('/go/:status', (req, res) => {
 
   if (status == 'off') {
     setLightsOff();
-    console.log("Turned off lights...");
+    console.log("Lights off");
 
     res.redirect('/go');
     return;
@@ -174,7 +180,7 @@ app.get('/go/:status', (req, res) => {
 
   if (status == 'on') {
     setLightsOn();
-    console.log("Turned on lights...");
+    console.log("Lights on");
 
     res.redirect('/go');
     return;
@@ -194,7 +200,7 @@ app.get('/logout', (req, res) => {
   user.access_token = null;
 
   res.redirect('//accounts.spotify.com/en/logout');
-  console.log('User logged out...');
+  console.log('User logged out');
 });
 
 app.listen(process.env.PORT, () => {

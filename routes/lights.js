@@ -88,7 +88,7 @@ module.exports.initBeat = (analysis, user) => {
 // Change color and brightness based on every BEAT_THRESHHOLDth
 const handleBeat = () => {
   if (beatNum >= audioAnalysis.segments.length || paused) {
-    console.log("Track is done/paused...");
+    console.log("Track is done or paused");
     return;
   }
 
@@ -122,7 +122,7 @@ const queryCurrentTrack = (user) => {
       return;
     
     if (!track.progress_ms) {
-      console.log("Couldn't get current track...");
+      console.log("Couldn't get current track");
     } else {
       updateBeatNum(track.progress_ms / 1000);
       paused = !track.is_playing;
