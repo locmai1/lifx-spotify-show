@@ -1,13 +1,13 @@
-html
-  head
-    title= 'LIFX'
-    link(rel='stylesheet', href='/style.css')
-  body(class='party')
-    div(id='container')
+extends default
+
+block content 
+  div
       h1= 'hey ' + user.display_name + ', enjoy the show!'
 
       div(class='media')
         img(src=user.images[0].url)
+
+      br
 
       a(href='/go/off')='Off'
       a(href='/go/on')='On'

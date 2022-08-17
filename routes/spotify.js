@@ -1,5 +1,5 @@
 const axios = require('axios');
-const lightService = require('./lights');
+const lights = require('./lights');
 var track;
 
 // Get current playing track, control spotify status, fetch audio analysis
@@ -27,7 +27,7 @@ module.exports.getCurrentTrack = (user, callback) => {
     }
   })
   .catch((error) => {
-    console.log(error || "Couldn't find spotify!");
+    console.log(error || "Couldn't find spotify...");
   })
 }
 
@@ -46,7 +46,7 @@ module.exports.getAudioAnalysis = (track, user) => {
   .then((response) => {
     var curTrack = response.data;
   
-    lightService.initBeat(curTrack, user);
+    lights.initBeat(curTrack, user);
   })
   .catch((error) => {
     console.log(error);

@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { URLSearchParams } = require('url');
-const { getLights, setLightsOff, setLightsOn } = require('./services/lights');
-const spotifyService = require('./services/spotify');
+const { getLights, setLightsOff, setLightsOn } = require('./routes/lights');
+const spotify = require('./routes/spotify');
 const express = require('express');
 const axios = require('axios');
 const cookieParser = require('cookie-parser');
@@ -78,7 +78,7 @@ app.get('/callback', (req, res) => {
     }
   })
   .catch((error) => {
-    console.log(error || 'invalid token');
+    console.log(error || 'invalid token...');
   })
 });
 
@@ -108,6 +108,10 @@ app.get('/refresh_token', (req, res) => {
   .catch((error) => {
     console.log(error);
   })
+})
+
+app.get('/', (req, res) => {
+  res.render('login');
 })
 
 // Upon login, redirect based on lights status
@@ -143,7 +147,7 @@ app.get('/go', (req, res) => {
     user: user
   });
 
-  spotifyService.getCurrentTrack(user);
+  spotify.getCurrentTrack(user);
 });
 
 // Control the status of the LIFX light(s)
@@ -162,15 +166,17 @@ app.get('/go/:status', (req, res) => {
 
   if (status == 'off') {
     setLightsOff();
-    res.redirect('/go');
+    console.log("Turned off lights...");
 
+    res.redirect('/go');
     return;
   } 
 
   if (status == 'on') {
     setLightsOn();
-    res.redirect('/go');
+    console.log("Turned on lights...");
 
+    res.redirect('/go');
     return;
   }
 
@@ -188,7 +194,7 @@ app.get('/logout', (req, res) => {
   user.access_token = null;
 
   res.redirect('//accounts.spotify.com/en/logout');
-  console.log('User logged out!');
+  console.log('User logged out...');
 });
 
 app.listen(process.env.PORT, () => {

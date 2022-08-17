@@ -1,6 +1,6 @@
 const LifxClient = require('node-lifx').Client;
 const NanoTimer = require('nanotimer');
-const spotifyService = require('./spotify');
+const spotify = require('./spotify');
 const { inRange, clamp } = require('lodash');
 
 const POLL_TIME = 2000;
@@ -18,13 +18,13 @@ var beatNum = 0;
 var beatTimer;
 
 var client = new LifxClient();
-var lights = []
+var lights = [];
 
 // Control status of LIFX light(s)
 const getLabel = (light, callback) => {
   light.getLabel((error, data) => {
     if (error) 
-      return callback("Null");
+      return callback("null");
 
     return callback(data);
   });
@@ -44,7 +44,7 @@ client.on('light-online', (light) => {
 });
 
 client.on('light-offline', () => {
-  console.log("A light disconnected!");
+  console.log("A light disconnected...");
 
   if (beatTimer) 
     beatTimer.clearTimeout();
@@ -52,7 +52,7 @@ client.on('light-offline', () => {
 
 client.init();
 
-// Return LIFX light(s)
+// Control LIFX light(s)
 module.exports.getLights = () => {
   return client.lights().length>0;
 };
@@ -88,7 +88,7 @@ module.exports.initBeat = (analysis, user) => {
 // Change color and brightness based on every BEAT_THRESHHOLDth
 const handleBeat = () => {
   if (beatNum >= audioAnalysis.segments.length || paused) {
-    console.log("Track is done or paused");
+    console.log("Track is done/paused...");
     return;
   }
 
@@ -117,12 +117,12 @@ const setColorFromWheel = (brightness) => {
 
 // Timer for when to check current timestamp in song
 const queryCurrentTrack = (user) => {
-  spotifyService.getCurrentTrack(user, (user, track) => {
+  spotify.getCurrentTrack(user, (user, track) => {
     if (!user.access_token) 
       return;
     
     if (!track.progress_ms) {
-      console.log("Couldn't get current track");
+      console.log("Couldn't get current track...");
     } else {
       updateBeatNum(track.progress_ms / 1000);
       paused = !track.is_playing;
