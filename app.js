@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { URLSearchParams } = require('url');
-const { getLights } = require('./services/lights');
+const { getLights, setLightsOff, setLightsOn } = require('./services/lights');
 const spotifyService = require('./services/spotify');
 const express = require('express');
 const axios = require('axios');
@@ -35,8 +35,9 @@ app.get('/login', (req, res) => {
     client_id: process.env.CLIENT_ID,
     scope: scope,
     redirect_uri: process.env.REDIRECT_URI,
-    state: state
-  })
+    state: state,
+    show_dialog: true,
+  });
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams}`);
 });
 
@@ -117,7 +118,7 @@ app.get('/refresh_token', (req, res) => {
 
 // Upon login, redirect based on lights status
 app.get('/user', (req, res) => {
-  if (!user) {
+  if (!user || !user.access_token) {
     res.redirect('/');
     return;
   }
@@ -130,16 +131,30 @@ app.get('/user', (req, res) => {
   res.render('user', {
     user: user,
   });
-})
+});
 
-// Start sync if lights available
-app.get('/go', (req, res) => {
-  if(!user && !getLights()) {
+// Log current user out of app
+app.get('/logout', (req, res) => {
+  if (!user || !user.access_token) {
     res.redirect('/');
     return;
   }
 
-  if (user && !getLights()) {
+  setLightsOff();
+  user.access_token = null;
+
+  res.redirect('//accounts.spotify.com/en/logout');
+  console.log('User logged out!');
+})
+
+// Start sync if logged in & lights available
+app.get('/go', (req, res) => {
+  if(!user || !user.access_token) {
+    res.redirect('/');
+    return;
+  }
+
+  if (!getLights()) {
     res.redirect('/user');
     return;
   }
@@ -148,7 +163,8 @@ app.get('/go', (req, res) => {
     user: user
   });
 
-  spotifyService.getCurrentTrack(user);    
+  setLightsOn();
+  spotifyService.getCurrentTrack(user);
 });
 
 // Catch errors if any

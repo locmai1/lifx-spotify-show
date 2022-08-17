@@ -19,6 +19,9 @@ a {
   text-decoration: none;  
   border-radius: 2em;
   font-size: 20px;
+  display: inline-block;
+  width: 12vw;
+  margin: 0 1vw 0;
 }
 
 #container {
@@ -32,7 +35,7 @@ a {
   width: 20vh;
   border-radius: 10vh;    
   box-shadow: 0px 4px 4px rgba(0,0,0,0.2);
-  margin-bottom: 5vh;     
+  margin-bottom: 3vh;
 }
 
 .party {

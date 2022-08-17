@@ -4,6 +4,9 @@ var track;
 
 // Get current playing track, control spotify status, fetch audio analysis
 module.exports.getCurrentTrack = (user, callback) => {
+  if (!user.access_token) 
+    return;
+
   axios({
     method: 'get',
     url: 'https://api.spotify.com/v1/me/player/currently-playing',
@@ -30,6 +33,9 @@ module.exports.getCurrentTrack = (user, callback) => {
 
 // Get audio analysis of given song, start sync
 module.exports.getAudioAnalysis = (track, user) => {
+  if (!user.access_token) 
+    return;
+
   axios({
     method: 'get',
     url: 'https://api.spotify.com/v1/audio-analysis/' + track.item.id,

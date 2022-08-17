@@ -57,6 +57,18 @@ module.exports.getLights = () => {
   return client.lights().length>0;
 };
 
+module.exports.setLightsOn = () => {
+  client.lights().forEach((light) => {
+    light.on();
+  });
+}
+
+module.exports.setLightsOff = () => {
+  client.lights().forEach((light) => {
+    light.off();
+  });
+}
+
 // Start sync with Spotify
 module.exports.initBeat = (analysis, user) => {
   beatTimer = new NanoTimer();
@@ -98,7 +110,7 @@ const handleBeat = () => {
 const setColorFromWheel = (brightness) => {
   curColor += 30;
 
-  client.lights().forEach(function(light) {
+  client.lights().forEach((light) => {
     light.color(curColor % 360, 50, brightness, 4500, 150);
   });
 };
@@ -106,6 +118,9 @@ const setColorFromWheel = (brightness) => {
 // Timer for when to check current timestamp in song
 const queryCurrentTrack = (user) => {
   spotifyService.getCurrentTrack(user, (user, track) => {
+    if (!user.access_token) 
+      return;
+    
     if (!track.progress_ms) {
       console.log("Couldn't get current track");
     } else {
