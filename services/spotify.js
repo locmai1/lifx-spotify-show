@@ -1,15 +1,12 @@
 const axios = require('axios');
 const lightService = require('./lights');
-const url = 'https://api.spotify.com/v1/'
 var track;
 
-// Get current playing track, audio analysis
-module.exports.getCurrentTrack = function(user, callback) {
-  let self = this ;
-  
+// Get current playing track, control spotify status, fetch audio analysis
+module.exports.getCurrentTrack = (user, callback) => {
   axios({
     method: 'get',
-    url: url + 'me/player/currently-playing',
+    url: 'https://api.spotify.com/v1/me/player/currently-playing',
     headers: {
       Authorization: `Bearer ${user.access_token}`,
     },
@@ -17,26 +14,25 @@ module.exports.getCurrentTrack = function(user, callback) {
   .then((response) => {
     var curTrack = response.data;
 
-    if (curTrack && (track !== curTrack.item.id)) {
-      console.log(`New track: ${curTrack.item.name} by ${curTrack.item.artists[0].name}`);
+    if (curTrack && track !== curTrack.item.id) {
+      console.log(`New track: ${curTrack.item.name} by ${curTrack.item.artists[0].name}...`);
       track = curTrack.item.id;
-
-      self.getAudioAnalysis(curTrack, user);
-    } else {
-      if (callback) 
-        callback(user, curTrack);
+      
+      this.getAudioAnalysis(curTrack, user);
+    } else if (callback) {
+      callback(user, curTrack);
     }
   })
   .catch((error) => {
-    console.log(error || "Couldn't detect spotify instance!");
+    console.log(error || "Couldn't find spotify!");
   })
 }
 
 // Get audio analysis of given song, start sync
-module.exports.getAudioAnalysis = function(track, user) {
+module.exports.getAudioAnalysis = (track, user) => {
   axios({
     method: 'get',
-    url: url + 'audio-analysis/' + track.item.id,
+    url: 'https://api.spotify.com/v1/audio-analysis/' + track.item.id,
     headers: {
       Authorization: `Bearer ${user.access_token}`,
     },

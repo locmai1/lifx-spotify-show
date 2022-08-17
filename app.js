@@ -121,10 +121,12 @@ app.get('/user', (req, res) => {
     res.redirect('/');
     return;
   }
+
   if (getLights()) {
     res.redirect('/go');
     return;
   }
+
   res.render('user', {
     user: user,
   });
@@ -132,10 +134,16 @@ app.get('/user', (req, res) => {
 
 // Start sync if lights available
 app.get('/go', (req, res) => {
-  if(!user || !getLights()) {
+  if(!user && !getLights()) {
     res.redirect('/');
     return;
   }
+
+  if (user && !getLights()) {
+    res.redirect('/user');
+    return;
+  }
+
   res.render('ready', {
     user: user
   });
@@ -149,6 +157,7 @@ app.get('/error', (req, res) => {
     res.redirect('/');
     return;
   }
+
   res.render('error', {
     error: req.query.msg
   });

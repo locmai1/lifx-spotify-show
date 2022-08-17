@@ -21,29 +21,29 @@ var client = new LifxClient();
 var lights = []
 
 // Control status of LIFX light(s)
-function getLabel(light, callback) {
-  light.getLabel(function(err, data) {
-    if (err) 
+const getLabel = (light, callback) => {
+  light.getLabel((error, data) => {
+    if (error) 
       return callback("Null");
 
     return callback(data);
   });
 };
 
-client.on('light-new', function(light) {
-  getLabel(light, function(name) {
+client.on('light-new', (light) => {
+  getLabel(light, (name) => {
     lights.push(light);
     console.log(name + " connected!");
   });
 });
 
-client.on('light-online', function(light) {
-  getLabel(light, function(name) {
+client.on('light-online', (light) => {
+  getLabel(light, (name) => {
     console.log(name + " reconnected!");
   });
 });
 
-client.on('light-offline', function(light) {
+client.on('light-offline', () => {
   console.log("A light disconnected!");
 
   if (beatTimer) 
@@ -53,12 +53,12 @@ client.on('light-offline', function(light) {
 client.init();
 
 // Return LIFX light(s)
-module.exports.getLights = function() {
+module.exports.getLights = () => {
   return client.lights().length>0;
 };
 
 // Start sync with Spotify
-module.exports.initBeat = function(analysis, user) {
+module.exports.initBeat = (analysis, user) => {
   beatTimer = new NanoTimer();
 
   audioAnalysis = analysis;
@@ -74,7 +74,7 @@ module.exports.initBeat = function(analysis, user) {
 };
 
 // Change color and brightness based on every BEAT_THRESHHOLDth
-function handleBeat() {
+const handleBeat = () => {
   if (beatNum >= audioAnalysis.segments.length || paused) {
     console.log("Track is done or paused");
     return;
@@ -95,7 +95,7 @@ function handleBeat() {
 };
 
 // Change LIFX light(s) color
-function setColorFromWheel(brightness) {
+const setColorFromWheel = (brightness) => {
   curColor += 30;
 
   client.lights().forEach(function(light) {
@@ -104,13 +104,13 @@ function setColorFromWheel(brightness) {
 };
 
 // Timer for when to check current timestamp in song
-function queryCurrentTrack(user) {
-  spotifyService.getCurrentTrack(user, function(user, body) {
-    if (!body.progress_ms) {
+const queryCurrentTrack = (user) => {
+  spotifyService.getCurrentTrack(user, (user, track) => {
+    if (!track.progress_ms) {
       console.log("Couldn't get current track");
     } else {
-      updateBeatNum(body.progress_ms / 1000);
-      paused = !body.is_playing;
+      updateBeatNum(track.progress_ms / 1000);
+      paused = !track.is_playing;
     }
   
     setTimeout(() => queryCurrentTrack(user), POLL_TIME);
@@ -118,12 +118,13 @@ function queryCurrentTrack(user) {
 };
 
 // Recalibrate to correct beat based on current progress
-function updateBeatNum(progress) {
+const updateBeatNum = (progress) => {
   for (let i = 0; i < audioAnalysis.segments.length; i++) {
     const start = audioAnalysis.segments[i].start;
     const end = start + audioAnalysis.segments[i].duration;
 
-    if (inRange(progress, start, end)) beatNum = i;
+    if (inRange(progress, start, end)) 
+      beatNum = i;
   }
 
   beatTimer.clearTimeout();
@@ -131,19 +132,20 @@ function updateBeatNum(progress) {
 };
 
 // Get current section based on current segment 
-function getSection() {
+const getSection = () => {
   for (let i = 0; i < audioAnalysis.sections.length; i++) {
     const start = audioAnalysis.sections[i].start;
     const end = start + audioAnalysis.sections[i].duration;
 
-    if (inRange(audioAnalysis.segments[beatNum].start, start, end)) return i;
+    if (inRange(audioAnalysis.segments[beatNum].start, start, end)) 
+      return i;
   }
 
   return 0;
 }
 
 // Get the brightness for lights based on section loudness
-function getBrightnessSectionLoudness() {
+const getBrightnessSectionLoudness = () => {
   const beatLoudness = audioAnalysis.segments[beatNum].loudness_max;
   const trackLoudness = audioAnalysis.sections[getSection()].loudness;
   const maxLoudnessDiff = (loudest - quietest);
