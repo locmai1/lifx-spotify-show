@@ -10,8 +10,8 @@ var user;
 
 const app = express();
 app.set('view engine', 'pug');
+app.use(cookieParser());
 app.use(express.static(__dirname + '/public'))
-   .use(cookieParser());
 
 // Generate a random string for Spotify OAuth
 const generateRandomString = (length) => {
