@@ -1,7 +1,7 @@
 const LifxClient = require('node-lifx').Client;
-const _ = require('lodash');
 const NanoTimer = require('nanotimer');
 const spotifyService = require('./spotify');
+const { inRange, clamp } = require('lodash');
 
 const POLL_TIME = 2000;
 const MAX_BRIGHTNESS = 50;
@@ -123,7 +123,7 @@ function updateBeatNum(progress) {
     const start = audioAnalysis.segments[i].start;
     const end = start + audioAnalysis.segments[i].duration;
 
-    if (_.inRange(progress, start, end)) beatNum = i;
+    if (inRange(progress, start, end)) beatNum = i;
   }
 
   beatTimer.clearTimeout();
@@ -136,7 +136,7 @@ function getSection() {
     const start = audioAnalysis.sections[i].start;
     const end = start + audioAnalysis.sections[i].duration;
 
-    if (_.inRange(audioAnalysis.segments[beatNum].start, start, end)) return i;
+    if (inRange(audioAnalysis.segments[beatNum].start, start, end)) return i;
   }
 
   return 0;
@@ -150,5 +150,5 @@ function getBrightnessSectionLoudness() {
 
   const brightness = (beatLoudness / trackLoudness) * (maxLoudnessDiff / 100);
 
-  return 100 - _.clamp(brightness * 100, 0, 100);
+  return 100 - clamp(brightness * 100, 0, 100);
 }

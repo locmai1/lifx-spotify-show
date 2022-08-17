@@ -28,7 +28,7 @@ module.exports.getCurrentTrack = function(user, callback) {
     }
   })
   .catch((error) => {
-    console.log(error || "Couldn't get current track");
+    console.log(error || "Couldn't detect spotify instance!");
   })
 }
 

@@ -1,10 +1,10 @@
 require('dotenv').config();
+const { URLSearchParams } = require('url');
+const { getLights } = require('./services/lights');
+const spotifyService = require('./services/spotify');
 const express = require('express');
 const axios = require('axios');
-const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
-const lightService = require('./services/lights');
-const spotifyService = require('./services/spotify');
 const stateKey = 'spotify_auth_state';
 var user;
 
@@ -30,7 +30,7 @@ app.get('/login', (req, res) => {
   res.cookie(stateKey, state);
 
   const scope = 'user-read-private user-read-email user-read-playback-state';
-  const queryParams = querystring.stringify({
+  const queryParams = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.CLIENT_ID,
     scope: scope,
@@ -47,7 +47,7 @@ app.get('/callback', (req, res) => {
   axios({
     method: 'post',
     url: 'https://accounts.spotify.com/api/token',
-    data: querystring.stringify({
+    data: new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
       redirect_uri: process.env.REDIRECT_URI,
@@ -72,14 +72,14 @@ app.get('/callback', (req, res) => {
         res.redirect('/user');
       })
       .catch((error) => {
-        res.redirect(`/error?${querystring.stringify({
+        res.redirect(`/error?${new URLSearchParams({
           error: error
         })}`);
       })
     }
   })
   .catch((error) => {
-    res.redirect(`/error?${querystring.stringify({
+    res.redirect(`/error?${new URLSearchParams({
       error: 'invalid_token'
     })}`);
   })
@@ -92,7 +92,7 @@ app.get('/refresh_token', (req, res) => {
   axios({
     method: 'post',
     url: 'https://accounts.spotify.com/api/token',
-    data: querystring.stringify({
+    data: new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refresh_token
     }),
@@ -109,7 +109,7 @@ app.get('/refresh_token', (req, res) => {
     });
   })
   .catch((error) => {
-    res.redirect(`/error?${querystring.stringify({
+    res.redirect(`/error?${new URLSearchParams({
       error: error
     })}`);
   })
@@ -121,7 +121,7 @@ app.get('/user', (req, res) => {
     res.redirect('/');
     return;
   }
-  if (lightService.getLights()) {
+  if (getLights()) {
     res.redirect('/go');
     return;
   }
@@ -132,7 +132,7 @@ app.get('/user', (req, res) => {
 
 // Start sync if lights available
 app.get('/go', (req, res) => {
-  if(!user || !lightService.getLights()) {
+  if(!user || !getLights()) {
     res.redirect('/');
     return;
   }
