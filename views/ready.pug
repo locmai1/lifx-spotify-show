@@ -2,7 +2,7 @@ extends default
 
 block content 
   div
-    h1= 'hey ' + user.display_name + ', enjoy the show!'
+    h1= 'hey ' + user.display_name + ', play a song to start!'
 
     div(class='media')
       img(src=user.images[0].url)
@@ -14,4 +14,4 @@ block content
     a(href='/logout')='Logout'
 
   script 
-    include ./scripts/autoRefresh.js
+    include ../public/scripts/autoRefresh.js
