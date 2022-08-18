@@ -7,6 +7,7 @@ const POLL_TIME = 2000;
 const MAX_BRIGHTNESS = 50;
 const MIN_BRIGHTNESS = 0;
 const BEAT_THRESHHOLD = 5;
+const MAX_SATURATION = 0;
 var loudest = -99;
 var quietest = 99;
 var brightness = 0;
@@ -111,7 +112,7 @@ const setColorFromWheel = (brightness) => {
   curColor += 30;
 
   client.lights().forEach((light) => {
-    light.color(curColor % 360, 50, brightness, 4500, 150);
+    light.color(curColor % 360, MAX_SATURATION, brightness, 4500, 150);
   });
 };
 

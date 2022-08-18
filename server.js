@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { URLSearchParams } = require('url');
 const { getLights, setLightsOff, setLightsOn } = require('./routes/lights');
+const { join } = require('path');
 const spotify = require('./routes/spotify');
 const express = require('express');
 const axios = require('axios');
@@ -11,7 +12,7 @@ var user;
 const app = express();
 app.set('view engine', 'pug');
 app.use(cookieParser());
-app.use(express.static(__dirname + '/public'))
+app.use(express.static(join(__dirname, '/public')));
 
 // Generate a random string for Spotify OAuth
 const generateRandomString = (length) => {
