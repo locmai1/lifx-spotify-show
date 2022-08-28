@@ -2,38 +2,10 @@ const axios = require('axios');
 const lights = require('./lights');
 var track;
 
-// Get current playing track, control spotify status, fetch audio analysis
-module.exports.getCurrentTrack = (user, callback) => {
-  if (!user.access_token) 
-    return;
 
-  axios({
-    method: 'get',
-    url: 'https://api.spotify.com/v1/me/player/currently-playing',
-    headers: {
-      Authorization: `Bearer ${user.access_token}`,
-    },
-  })
-  .then((response) => {
-    var curTrack = response.data;
-
-    if (curTrack && track !== curTrack.item.id) {
-      console.log(`New track: ${curTrack.item.name} by ${getArtistsNames(curTrack).join(", ")}`);
-
-      track = curTrack.item.id;
-      
-      this.getAudioAnalysis(curTrack, user);
-    } else if (callback) {
-      callback(user, curTrack);
-    }
-  })
-  .catch((error) => {
-    console.log(error || "Couldn't find spotify");
-  })
-}
 
 // Get audio analysis of given song, start sync
-module.exports.getAudioAnalysis = (track, user) => {
+const getAudioAnalysis = (track, user) => {
   if (!user.access_token) 
     return;
 
@@ -54,6 +26,36 @@ module.exports.getAudioAnalysis = (track, user) => {
   })
 }
 
+// Get current playing track, control spotify status, fetch audio analysis
+const getCurrentTrack = (user, callback) => {
+  if (!user.access_token) 
+    return;
+
+  axios({
+    method: 'get',
+    url: 'https://api.spotify.com/v1/me/player/currently-playing',
+    headers: {
+      Authorization: `Bearer ${user.access_token}`,
+    },
+  })
+  .then((response) => {
+    var curTrack = response.data;
+
+    if (curTrack && track !== curTrack.item.id) {
+      console.log(`New track: ${curTrack.item.name} by ${getArtistsNames(curTrack).join(", ")}`);
+
+      track = curTrack.item.id;
+      
+      getAudioAnalysis(curTrack, user);
+    } else if (callback) {
+      callback(user, curTrack);
+    }
+  })
+  .catch((error) => {
+    console.log(error || "Couldn't find spotify");
+  })
+}
+
 // Get all artists names from given track
 const getArtistsNames = (track) => {
   var names = [];
@@ -63,4 +65,9 @@ const getArtistsNames = (track) => {
   })
 
   return names;
+}
+
+module.exports = {
+  getCurrentTrack,
+  getAudioAnalysis
 }

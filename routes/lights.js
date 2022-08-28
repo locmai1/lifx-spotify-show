@@ -1,47 +1,37 @@
-const LifxClient = require('node-lifx').Client;
+const LifxClient = require('lifx-lan-client').Client;
 const NanoTimer = require('nanotimer');
 const spotify = require('./spotify');
 const { inRange, clamp } = require('lodash');
 
-const POLL_TIME = 2000;
-const MAX_BRIGHTNESS = 50;
-const MIN_BRIGHTNESS = 0;
-const BEAT_THRESHHOLD = 5;
-const MAX_SATURATION = 0;
-var loudest = -99;
-var quietest = 99;
-var brightness = 0;
-var lastBrightness = 0;
-var curColor = 0;
-var paused = false;
-var audioAnalysis;
-var beatNum = 0;
-var beatTimer;
+const MAX_BRIGHTNESS = 40;
+const MIN_BRIGHTNESS = 5;
+const MAX_SATURATION = 50;
 
 var client = new LifxClient();
 var lights = [];
+var loudest = -99;
+var quietest = 99;
+var nextBrightness = 0;
+var lastBrightness = 0;
+var currColor = 0;
 
-// Control status of LIFX light(s)
-const getLabel = (light, callback) => {
-  light.getLabel((error, data) => {
-    if (error) 
-      return callback("null");
+var beatNum = 0;
+var beatTimer = new NanoTimer();
+var paused = false;
+var audioAnalysis;
 
-    return callback(data);
-  });
-};
-
+// Control light(s) status
 client.on('light-new', (light) => {
-  getLabel(light, (name) => {
-    lights.push(light);
-    console.log(name + " connected!");
-  });
+  console.log("ID: " + light.id + " connected!");
+
+  light.on();
+  lights.push(light);
 });
 
 client.on('light-online', (light) => {
-  getLabel(light, (name) => {
-    console.log(name + " reconnected!");
-  });
+  console.log("ID: " + light.id + " reconnected!");
+
+  light.on();
 });
 
 client.on('light-offline', () => {
@@ -53,7 +43,6 @@ client.on('light-offline', () => {
 
 client.init();
 
-// Control LIFX light(s)
 module.exports.getLights = () => {
   return client.lights().length>0;
 };
@@ -70,36 +59,34 @@ module.exports.setLightsOff = () => {
   });
 }
 
-// Start sync with Spotify
+// Start sync
 module.exports.initBeat = (analysis, user) => {
-  beatTimer = new NanoTimer();
+  audioAnalysis = analysis
 
-  audioAnalysis = analysis;
-
-  for (let i = 0; i < audioAnalysis.segments.length; i++) {
-    if (audioAnalysis.segments[i].loudness_max > loudest) 
-      loudest = audioAnalysis.segments[i].loudness_max;
-    if (audioAnalysis.segments[i].loudness_max < quietest) 
-      quietest = audioAnalysis.segments[i].loudness_max;
+  for (let i = 0; i < analysis.segments.length; i++) {
+    if (analysis.segments[i].loudness_max > loudest) 
+      loudest = analysis.segments[i].loudness_max;
+    if (analysis.segments[i].loudness_max < quietest) 
+      quietest = analysis.segments[i].loudness_max;
   }
 
   queryCurrentTrack(user);
 };
 
-// Change color and brightness based on every BEAT_THRESHHOLDth
+// Control light(s) every 5th beat
 const handleBeat = () => {
   if (beatNum >= audioAnalysis.segments.length || paused) {
     console.log("Track is done or paused");
     return;
   }
 
-  brightness = getBrightnessSectionLoudness();
-  brightness = MIN_BRIGHTNESS + brightness * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 100;
-  const brightnessDiff = Math.abs(brightness - lastBrightness)
+  nextBrightness = getBrightnessSectionLoudness();
+  nextBrightness = (((MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 100) * MIN_BRIGHTNESS) + nextBrightness;
+  const brightnessDiff = Math.abs(nextBrightness - lastBrightness)
 
-  if (brightnessDiff >= BEAT_THRESHHOLD * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 100) {
-    lastBrightness = brightness;
-    setColorFromWheel(brightness);
+  if (brightnessDiff >= 5 * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 100) {
+    lastBrightness = nextBrightness;
+    setColorFromWheel(nextBrightness);
   }
 
   beatNum++;
@@ -107,33 +94,32 @@ const handleBeat = () => {
     beatTimer.setTimeout(() => handleBeat(), '', `${audioAnalysis.segments[beatNum].duration}s`);
 };
 
-// Change LIFX light(s) color
+// Change color
 const setColorFromWheel = (brightness) => {
-  curColor += 30;
+  currColor += 30;
 
-  client.lights().forEach((light) => {
-    light.color(curColor % 360, MAX_SATURATION, brightness, 4500, 150);
-  });
+  for (let i = 0; i < lights.length; i++)
+    lights[i].color(currColor % 360, MAX_SATURATION, brightness, 4500, 100);
 };
 
-// Timer for when to check current timestamp in song
+// Check current track every 2000 ms
 const queryCurrentTrack = (user) => {
   spotify.getCurrentTrack(user, (user, track) => {
-    if (!user.access_token) 
+    if (!user.access_token || !track) 
       return;
     
-    if (!track.progress_ms) {
+    if (track && !track.progress_ms) {
       console.log("Couldn't get current track");
     } else {
       updateBeatNum(track.progress_ms / 1000);
       paused = !track.is_playing;
     }
   
-    setTimeout(() => queryCurrentTrack(user), POLL_TIME);
+    setTimeout(() => queryCurrentTrack(user), 2000);
   });
 };
 
-// Recalibrate to correct beat based on current progress
+// Recalibrate segment
 const updateBeatNum = (progress) => {
   for (let i = 0; i < audioAnalysis.segments.length; i++) {
     const start = audioAnalysis.segments[i].start;
@@ -147,7 +133,7 @@ const updateBeatNum = (progress) => {
   handleBeat();
 };
 
-// Get current section based on current segment 
+// Find current section
 const getSection = () => {
   for (let i = 0; i < audioAnalysis.sections.length; i++) {
     const start = audioAnalysis.sections[i].start;
@@ -160,13 +146,12 @@ const getSection = () => {
   return 0;
 }
 
-// Get the brightness for lights based on section loudness
+// Calculate brightness based on segment and section
 const getBrightnessSectionLoudness = () => {
-  const beatLoudness = audioAnalysis.segments[beatNum].loudness_max;
-  const trackLoudness = audioAnalysis.sections[getSection()].loudness;
+  const segmentLoudness = audioAnalysis.segments[beatNum].loudness_max;
+  const sectionLoudness = audioAnalysis.sections[getSection()].loudness;
   const maxLoudnessDiff = (loudest - quietest);
 
-  const brightness = (beatLoudness / trackLoudness) * (maxLoudnessDiff / 100);
-
+  const brightness = (segmentLoudness / sectionLoudness) * (maxLoudnessDiff / 100);
   return 100 - clamp(brightness * 100, 0, 100);
 }

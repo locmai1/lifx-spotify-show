@@ -14,7 +14,6 @@ app.set('view engine', 'pug');
 app.use(cookieParser());
 app.use(express.static(join(__dirname, '/public')));
 
-// Generate a random string for Spotify OAuth
 const generateRandomString = (length) => {
   var text = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -25,7 +24,7 @@ const generateRandomString = (length) => {
   return text;
 }
 
-// Backend for logging into Spotify
+// Router
 app.get('/login', (req, res) => {
   const state = generateRandomString();
   res.cookie(stateKey, state);
@@ -42,7 +41,6 @@ app.get('/login', (req, res) => {
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams}`);
 });
 
-// Callback for after logging into Spotify
 app.get('/callback', (req, res) => {
   const code = req.query.code || null;
 
@@ -83,7 +81,6 @@ app.get('/callback', (req, res) => {
   })
 });
 
-// Get a new access_token from refresh_token after expiration
 app.get('/refresh_token', (req, res) => {
   const { refresh_token } = req.query.refresh_token;
 
@@ -111,7 +108,6 @@ app.get('/refresh_token', (req, res) => {
   })
 })
 
-// Deafault page, prompts login
 app.get('/', (req, res) => {
   if (user && user.access_token) {
     res.redirect('/user');
@@ -121,7 +117,6 @@ app.get('/', (req, res) => {
   res.render('login');
 })
 
-// Upon login, redirect based on lights status
 app.get('/user', (req, res) => {
   if (!user || !user.access_token) {
     res.redirect('/');
@@ -138,7 +133,6 @@ app.get('/user', (req, res) => {
   });
 });
 
-// Start sync if logged in & lights available
 app.get('/go', (req, res) => {
   if(!user || !user.access_token) {
     res.redirect('/');
@@ -157,7 +151,6 @@ app.get('/go', (req, res) => {
   spotify.getCurrentTrack(user);
 });
 
-// Control the status of the LIFX light(s)
 app.get('/go/:status', (req, res) => {
   var status = req.params.status;
 
@@ -190,7 +183,6 @@ app.get('/go/:status', (req, res) => {
   res.redirect('/');
 });
 
-// Log current user out of app
 app.get('/logout', (req, res) => {
   if (!user || !user.access_token) {
     res.redirect('/');

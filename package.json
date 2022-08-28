@@ -12,9 +12,9 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
+    "lifx-lan-client": "^2.0.0",
     "lodash": "^4.17.21",
     "nanotimer": "^0.3.15",
-    "node-lifx": "^0.8.0",
     "pug": "^3.0.2"
   },
   "devDependencies": {
